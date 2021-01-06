@@ -1,6 +1,16 @@
 package main
 
-import "fmt"
+import (
+	"html/template"
+	"net/http"
+	"os"
+
+	"github.com/56quarters/roger/pkg/app"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"github.com/prometheus/common/version"
+	"gopkg.in/alecthomas/kingpin.v2"
+)
 
 // Set by the build process: -ldflags="-X 'main.Version=xyz'"
 var (
@@ -12,9 +22,9 @@ var (
 const indexTpt = `
 <!doctype html>
 <html>
-<head><title>APC Metrics Exporter</title></head>
+<head><title>APC UPS Metrics Exporter</title></head>
 <body>
-<h1>APC Metrics Exporter</h1>
+<h1>APC UPS Metrics Exporter</h1>
 <p><a href="{{ . }}">Metrics</a></p>
 </body>
 </html>
@@ -29,5 +39,29 @@ func init() {
 }
 
 func main() {
-	fmt.Println("HELLO!")
+	kp := kingpin.New(os.Args[0], "apcmetrics: APC UPS metrics exporter for Prometheus")
+	metricsPath := kp.Flag("web.telemetry-path", "Path under which to expose metrics.").Default("/metrics").String()
+	webAddr := kp.Flag("web.listen-address", "Address and port to expose Prometheus metrics on").Default(":9780").String()
+
+	_, err := kp.Parse(os.Args[1:])
+	if err != nil {
+		app.Log.Fatal(err)
+	}
+	
+	registry := prometheus.DefaultRegisterer
+	versionInfo := version.NewCollector("apcmetrics")
+	registry.MustRegister(versionInfo)
+
+	index, err := template.New("index").Parse(indexTpt)
+	if err != nil {
+		app.Log.Fatal(err)
+	}
+
+	http.Handle(*metricsPath, promhttp.Handler())
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		if err := index.Execute(w, *metricsPath); err != nil {
+			app.Log.Errorf("Failed to render index: %s", err)
+		}
+	})
+	app.Log.Error(http.ListenAndServe(*webAddr, nil))
 }
