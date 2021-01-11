@@ -16,11 +16,11 @@ build-dist: GIT_VERSION = $(shell cat VERSION)
 build-dist: build
 
 clean:
-	rm -f roger
+	rm -f apcmetrics
 	rm -f VERSION
 
 image: build
-	docker build -t "roger:latest" -t "roger:$(DOCKER_VERSION)" .
+	docker build -t "apcmetrics:latest" -t "apcmetrics:$(DOCKER_VERSION)" .
 
 image-dist: build-dist
 image-dist: DOCKER_VERSION = $(shell cat VERSION)
