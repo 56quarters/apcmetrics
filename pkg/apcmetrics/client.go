@@ -1,4 +1,4 @@
-// apcmetrics -  APC UPS metrics exporter for Prometheus
+// apcmetrics - APC UPS metrics exporter for Prometheus
 //
 // Copyright 2021 Nick Pillitteri
 //
