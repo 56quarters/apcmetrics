@@ -29,7 +29,7 @@ func NewApcCollector(client *ApcClient, timeout time.Duration, logger log.Logger
 		info: prometheus.NewDesc(
 			"apc_info",
 			"Info about the UPS",
-			[]string{"hostname", "version", "ups_name", "model"},
+			[]string{"hostname", "version", "ups_name", "model", "driver", "ups_mode"},
 			nil,
 		),
 		status: prometheus.NewDesc(
@@ -80,9 +80,15 @@ func NewApcCollector(client *ApcClient, timeout time.Duration, logger log.Logger
 			nil,
 			nil,
 		),
-		nominalVoltage: prometheus.NewDesc(
-			"apc_nominal_voltage",
+		nominalBatteryVoltage: prometheus.NewDesc(
+			"apc_nominal_battery_voltage",
 			"Nominal battery voltage",
+			nil,
+			nil,
+		),
+		nominalInputVoltage: prometheus.NewDesc(
+			"apc_nominal_input_voltage",
+			"Nominal input voltage",
 			nil,
 			nil,
 		),
@@ -124,21 +130,22 @@ type apcCollector struct {
 	timeout time.Duration
 	logger  log.Logger
 
-	info                *prometheus.Desc
-	status              *prometheus.Desc
-	timeLeft            *prometheus.Desc
-	loadPercent         *prometheus.Desc
-	chargePercent       *prometheus.Desc
-	lineVoltage         *prometheus.Desc
-	lowTransferVoltage  *prometheus.Desc
-	highTransferVoltage *prometheus.Desc
-	batteryVoltage      *prometheus.Desc
-	nominalVoltage      *prometheus.Desc
-	nominalWattage      *prometheus.Desc
-	batteryDate         *prometheus.Desc
-	lastTimeOnBattery   *prometheus.Desc
-	lastTimeOffBattery  *prometheus.Desc
-	lastSelfTest        *prometheus.Desc
+	info                  *prometheus.Desc
+	status                *prometheus.Desc
+	timeLeft              *prometheus.Desc
+	loadPercent           *prometheus.Desc
+	chargePercent         *prometheus.Desc
+	lineVoltage           *prometheus.Desc
+	lowTransferVoltage    *prometheus.Desc
+	highTransferVoltage   *prometheus.Desc
+	batteryVoltage        *prometheus.Desc
+	nominalBatteryVoltage *prometheus.Desc
+	nominalInputVoltage   *prometheus.Desc
+	nominalWattage        *prometheus.Desc
+	batteryDate           *prometheus.Desc
+	lastTimeOnBattery     *prometheus.Desc
+	lastTimeOffBattery    *prometheus.Desc
+	lastSelfTest          *prometheus.Desc
 }
 
 func (a *apcCollector) Describe(ch chan<- *prometheus.Desc) {
@@ -151,7 +158,8 @@ func (a *apcCollector) Describe(ch chan<- *prometheus.Desc) {
 	ch <- a.lowTransferVoltage
 	ch <- a.highTransferVoltage
 	ch <- a.batteryVoltage
-	ch <- a.nominalVoltage
+	ch <- a.nominalBatteryVoltage
+	ch <- a.nominalInputVoltage
 	ch <- a.nominalWattage
 	ch <- a.batteryDate
 	ch <- a.lastTimeOnBattery
@@ -169,7 +177,18 @@ func (a *apcCollector) Collect(ch chan<- prometheus.Metric) {
 		return
 	}
 
-	ch <- prometheus.MustNewConstMetric(a.info, prometheus.GaugeValue, 1, status.Hostname, status.Version, status.UpsName, status.Model)
+	ch <- prometheus.MustNewConstMetric(
+		a.info,
+		prometheus.GaugeValue,
+		1,
+		status.Hostname,
+		status.Version,
+		status.UpsName,
+		status.Model,
+		status.Driver,
+		status.UpsMode,
+	)
+
 	ch <- prometheus.MustNewConstMetric(a.status, prometheus.GaugeValue, 1, status.Status)
 	ch <- prometheus.MustNewConstMetric(a.timeLeft, prometheus.GaugeValue, status.TimeLeft.Seconds())
 	ch <- prometheus.MustNewConstMetric(a.loadPercent, prometheus.GaugeValue, float64(status.LoadPercent))
@@ -178,7 +197,8 @@ func (a *apcCollector) Collect(ch chan<- prometheus.Metric) {
 	ch <- prometheus.MustNewConstMetric(a.lowTransferVoltage, prometheus.GaugeValue, float64(status.LowTransferVoltage))
 	ch <- prometheus.MustNewConstMetric(a.highTransferVoltage, prometheus.GaugeValue, float64(status.HighTransferVoltage))
 	ch <- prometheus.MustNewConstMetric(a.batteryVoltage, prometheus.GaugeValue, float64(status.BatteryVoltage))
-	ch <- prometheus.MustNewConstMetric(a.nominalVoltage, prometheus.GaugeValue, float64(status.NominalVoltage))
+	ch <- prometheus.MustNewConstMetric(a.nominalBatteryVoltage, prometheus.GaugeValue, float64(status.NominalBatteryVoltage))
+	ch <- prometheus.MustNewConstMetric(a.nominalInputVoltage, prometheus.GaugeValue, float64(status.NominalInputVoltage))
 	ch <- prometheus.MustNewConstMetric(a.nominalWattage, prometheus.GaugeValue, float64(status.NominalWattage))
 	ch <- prometheus.MustNewConstMetric(a.batteryDate, prometheus.GaugeValue, float64(status.BatteryDate.Unix()))
 	ch <- prometheus.MustNewConstMetric(a.lastTimeOnBattery, prometheus.GaugeValue, float64(status.LastTimeOnBattery.Unix()))

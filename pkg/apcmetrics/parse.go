@@ -27,17 +27,20 @@ type ApcStatus struct {
 	Version  string `json:"version"`
 	UpsName  string `json:"ups_name"`
 	Model    string `json:"model"`
+	Driver   string `json:"driver"`
+	UpsMode  string `json:"ups_mode"`
 
-	Status              string        `json:"status"`
-	TimeLeft            time.Duration `json:"time_left"`
-	LoadPercent         Percent       `json:"load_percent"`
-	ChargePercent       Percent       `json:"charge_percent"`
-	LineVoltage         Voltage       `json:"line_voltage"`
-	LowTransferVoltage  Voltage       `json:"low_transfer_voltage"`
-	HighTransferVoltage Voltage       `json:"high_transfer_voltage"`
-	BatteryVoltage      Voltage       `json:"battery_voltage"`
-	NominalVoltage      Voltage       `json:"nominal_voltage"`
-	NominalWattage      Wattage       `json:"nominal_wattage"`
+	Status                string        `json:"status"`
+	TimeLeft              time.Duration `json:"time_left"`
+	LoadPercent           Percent       `json:"load_percent"`
+	ChargePercent         Percent       `json:"charge_percent"`
+	LineVoltage           Voltage       `json:"line_voltage"`
+	LowTransferVoltage    Voltage       `json:"low_transfer_voltage"`
+	HighTransferVoltage   Voltage       `json:"high_transfer_voltage"`
+	BatteryVoltage        Voltage       `json:"battery_voltage"`
+	NominalBatteryVoltage Voltage       `json:"nominal_battery_voltage"`
+	NominalInputVoltage   Voltage       `json:"nominal_input_voltage"`
+	NominalWattage        Wattage       `json:"nominal_wattage"`
 
 	BatteryDate        time.Time `json:"battery_date"`
 	LastTimeOnBattery  time.Time `json:"last_time_on_battery"`
@@ -63,6 +66,14 @@ func ParseStatusFromLines(lines []string) (*ApcStatus, error) {
 
 	if v, ok := kvs["MODEL"]; ok {
 		status.Model = v
+	}
+
+	if v, ok := kvs["DRIVER"]; ok {
+		status.Driver = v
+	}
+
+	if v, ok := kvs["UPSMODE"]; ok {
+		status.UpsMode = v
 	}
 
 	if v, ok := kvs["STATUS"]; ok {
@@ -129,7 +140,15 @@ func ParseStatusFromLines(lines []string) (*ApcStatus, error) {
 		if parsed, err := parseFloatAndUnit(v); err != nil {
 			return nil, fmt.Errorf("unable to parse NOMBATTV %s: %w", v, err)
 		} else {
-			status.NominalVoltage = Voltage(parsed)
+			status.NominalBatteryVoltage = Voltage(parsed)
+		}
+	}
+
+	if v, ok := kvs["NOMINV"]; ok {
+		if parsed, err := parseFloatAndUnit(v); err != nil {
+			return nil, fmt.Errorf("unable to parse NOMINV %s: %w", v, err)
+		} else {
+			status.NominalInputVoltage = Voltage(parsed)
 		}
 	}
 
