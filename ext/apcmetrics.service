@@ -1,0 +1,11 @@
+[Unit]
+Description=APC UPS metrics exporter for Prometheus
+After=network.target
+
+[Service]
+Type=simple
+User=nobody
+ExecStart=/usr/local/bin/apcmetrics metrics
+
+[Install]
+WantedBy=multi-user.target
