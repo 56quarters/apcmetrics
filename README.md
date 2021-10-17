@@ -1,4 +1,4 @@
-# Roger
+# APC Metrics
 
 [![build status](https://circleci.com/gh/56quarters/apcmetrics.svg?style=shield)](https://circleci.com/gh/56quarters/apcmetrics)
 
