@@ -121,19 +121,37 @@ func (a *ApcClient) send(ctx context.Context, cmd string) ([]string, error) {
 }
 
 func (a *ApcClient) Status(ctx context.Context) (*ApcStatus, error) {
+	status, err := a.StatusRaw(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return ParseStatusFromLines(status)
+}
+
+func (a *ApcClient) Events(ctx context.Context) ([]ApcEvent, error) {
+	events, err := a.EventsRaw(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return ParseEventsFromLines(events)
+}
+
+func (a *ApcClient) StatusRaw(ctx context.Context) ([]string, error) {
 	r, err := a.send(ctx, "status")
 	if err != nil {
 		return nil, err
 	}
 
-	return ParseStatusFromLines(r)
+	return r, nil
 }
 
-func (a *ApcClient) Events(ctx context.Context) ([]ApcEvent, error) {
+func (a *ApcClient) EventsRaw(ctx context.Context) ([]string, error) {
 	r, err := a.send(ctx, "events")
 	if err != nil {
 		return nil, err
 	}
 
-	return ParseEventsFromLines(r)
+	return r, nil
 }
