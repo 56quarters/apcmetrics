@@ -11,6 +11,7 @@
 package apcmetrics
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -77,66 +78,66 @@ func ParseStatusFromLines(lines []string) (*ApcStatus, error) {
 	}
 
 	if v, ok := kvs["LOADPCT"]; ok {
-		if parsed, err := parsePercent(v); err != nil {
+		if parsed, err := parseFloatAndUnit(v); err != nil {
 			return nil, fmt.Errorf("unable to parse LOADPCT %s: %w", v, err)
 		} else {
-			status.LoadPercent = parsed
+			status.LoadPercent = Percent(parsed)
 		}
 	}
 
 	if v, ok := kvs["BCHARGE"]; ok {
-		if parsed, err := parsePercent(v); err != nil {
+		if parsed, err := parseFloatAndUnit(v); err != nil {
 			return nil, fmt.Errorf("unable to parse BCHARGE %s: %w", v, err)
 		} else {
-			status.ChargePercent = parsed
+			status.ChargePercent = Percent(parsed)
 		}
 	}
 
 	if v, ok := kvs["LINEV"]; ok {
-		if parsed, err := parseVoltage(v); err != nil {
+		if parsed, err := parseFloatAndUnit(v); err != nil {
 			return nil, fmt.Errorf("unable to parse LINEV %s: %w", v, err)
 		} else {
-			status.LineVoltage = parsed
+			status.LineVoltage = Voltage(parsed)
 		}
 	}
 
 	if v, ok := kvs["LOTRANS"]; ok {
-		if parsed, err := parseVoltage(v); err != nil {
+		if parsed, err := parseFloatAndUnit(v); err != nil {
 			return nil, fmt.Errorf("unable to parse LOTRANS %s: %w", v, err)
 		} else {
-			status.LowTransferVoltage = parsed
+			status.LowTransferVoltage = Voltage(parsed)
 		}
 	}
 
 	if v, ok := kvs["HITRANS"]; ok {
-		if parsed, err := parseVoltage(v); err != nil {
+		if parsed, err := parseFloatAndUnit(v); err != nil {
 			return nil, fmt.Errorf("unable to parse HITRANS %s: %w", v, err)
 		} else {
-			status.HighTransferVoltage = parsed
+			status.HighTransferVoltage = Voltage(parsed)
 		}
 	}
 
 	if v, ok := kvs["BATTV"]; ok {
-		if parsed, err := parseVoltage(v); err != nil {
+		if parsed, err := parseFloatAndUnit(v); err != nil {
 			return nil, fmt.Errorf("unable to parse BATTV %s: %w", v, err)
 		} else {
-			status.BatteryVoltage = parsed
+			status.BatteryVoltage = Voltage(parsed)
 		}
 	}
 
 	if v, ok := kvs["NOMBATTV"]; ok {
-		if parsed, err := parseVoltage(v); err != nil {
+		if parsed, err := parseFloatAndUnit(v); err != nil {
 			return nil, fmt.Errorf("unable to parse NOMBATTV %s: %w", v, err)
 		} else {
-			status.NominalVoltage = parsed
+			status.NominalVoltage = Voltage(parsed)
 		}
 	}
 
 	if v, ok := kvs["NOMPOWER"]; ok {
-		if parsed, err := parseWatts(v); err != nil {
+		if parsed, err := parseFloatAndUnit(v); err != nil {
 			return nil, fmt.Errorf("unable to parse NOMPOWER %s: %w", v, err)
 		} else {
-			status.NominalWattage = parsed
+			status.NominalWattage = Wattage(parsed)
 		}
 	}
 
@@ -192,46 +193,18 @@ func parseLines(lines []string) map[string]string {
 	return out
 }
 
-func parsePercent(raw string) (Percent, error) {
+func parseFloatAndUnit(raw string) (float64, error) {
 	parts := strings.Split(raw, " ")
 	if len(parts) != 2 {
-		return 0.0, fmt.Errorf("unable parse %s as percent", raw)
+		return 0.0, errors.New("expected two parts")
 	}
 
 	res, err := strconv.ParseFloat(parts[0], 64)
 	if err != nil {
-		return 0.0, fmt.Errorf("unable parse %s as percent: %w", parts[0], err)
+		return 0.0, err
 	}
 
-	return Percent(res), nil
-}
-
-func parseVoltage(raw string) (Voltage, error) {
-	parts := strings.Split(raw, " ")
-	if len(parts) != 2 {
-		return 0.0, fmt.Errorf("unable parse %s as voltage", raw)
-	}
-
-	res, err := strconv.ParseFloat(parts[0], 64)
-	if err != nil {
-		return 0.0, fmt.Errorf("unable parse %s as voltage: %w", parts[0], err)
-	}
-
-	return Voltage(res), nil
-}
-
-func parseWatts(raw string) (Wattage, error) {
-	parts := strings.Split(raw, " ")
-	if len(parts) != 2 {
-		return 0.0, fmt.Errorf("unable parse %s as wattage", raw)
-	}
-
-	res, err := strconv.ParseFloat(parts[0], 64)
-	if err != nil {
-		return 0.0, fmt.Errorf("unable parse %s as wattage: %w", parts[0], err)
-	}
-
-	return Wattage(res), nil
+	return res, nil
 }
 
 func parseDuration(raw string) (time.Duration, error) {
@@ -246,17 +219,17 @@ func parseDuration(raw string) (time.Duration, error) {
 	} else if strings.Contains(raw, "second") {
 		scale = float64(time.Second)
 	} else {
-		return 0, fmt.Errorf("unable to parse %s as duration: unexpected unit", raw)
+		return 0, errors.New("unexpected unit")
 	}
 
 	parts := strings.Split(raw, " ")
 	if len(parts) != 2 {
-		return 0.0, fmt.Errorf("unable parse %s as duration", raw)
+		return 0.0, errors.New("expected two parts")
 	}
 
 	res, err := strconv.ParseFloat(parts[0], 64)
 	if err != nil {
-		return 0, fmt.Errorf("unable to parse %s as duration: %w", raw, err)
+		return 0, err
 	}
 
 	return time.Duration(res * scale), nil
@@ -282,7 +255,7 @@ func ParseEventsFromLines(lines []string) ([]ApcEvent, error) {
 		// timestamp is separated from message with two spaces
 		parts := strings.Split(line, "  ")
 		if len(parts) != 2 {
-			return nil, fmt.Errorf("unable to parse %s as event", line)
+			return nil, errors.New("expected two parts")
 		}
 
 		timestamp := strings.TrimSpace(parts[0])
@@ -290,7 +263,7 @@ func ParseEventsFromLines(lines []string) ([]ApcEvent, error) {
 
 		ts, err := parseDateTime(timestamp)
 		if err != nil {
-			return nil, fmt.Errorf("unable to parse %s as timestamp: %w", timestamp, err)
+			return nil, err
 		}
 
 		out = append(out, ApcEvent{
