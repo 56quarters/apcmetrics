@@ -130,7 +130,7 @@ func showStatus(client *apcmetrics.ApcClient, logger log.Logger, upsTimeout time
 		os.Exit(1)
 	}
 
-	bytes, err := json.Marshal(status)
+	bytes, err := json.MarshalIndent(status, "", "  ")
 	if err != nil {
 		level.Error(logger).Log("msg", "unable to marshall UPS status to JSON", "err", err)
 		os.Exit(1)
@@ -149,7 +149,7 @@ func showEvents(client *apcmetrics.ApcClient, logger log.Logger, upsTimeout time
 		os.Exit(1)
 	}
 
-	bytes, err := json.Marshal(events)
+	bytes, err := json.MarshalIndent(events, "", "  ")
 	if err != nil {
 		level.Error(logger).Log("msg", "unable to marshall UPS events to JSON", "err", err)
 		os.Exit(1)
