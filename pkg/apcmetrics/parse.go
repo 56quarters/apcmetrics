@@ -81,115 +81,129 @@ func ParseStatusFromLines(lines []string) (*ApcStatus, error) {
 	}
 
 	if v, ok := kvs["TIMELEFT"]; ok {
-		if parsed, err := parseDuration(v); err != nil {
+		parsed, err := parseDuration(v)
+		if err != nil {
 			return nil, fmt.Errorf("unable to parse TIMELEFT %s: %w", v, err)
-		} else {
-			status.TimeLeft = parsed
 		}
+
+		status.TimeLeft = parsed
 	}
 
 	if v, ok := kvs["LOADPCT"]; ok {
-		if parsed, err := parseFloatAndUnit(v); err != nil {
+		parsed, err := parseFloatAndUnit(v)
+		if err != nil {
 			return nil, fmt.Errorf("unable to parse LOADPCT %s: %w", v, err)
-		} else {
-			status.LoadPercent = Percent(parsed)
 		}
+
+		status.LoadPercent = Percent(parsed)
 	}
 
 	if v, ok := kvs["BCHARGE"]; ok {
-		if parsed, err := parseFloatAndUnit(v); err != nil {
+		parsed, err := parseFloatAndUnit(v)
+		if err != nil {
 			return nil, fmt.Errorf("unable to parse BCHARGE %s: %w", v, err)
-		} else {
-			status.ChargePercent = Percent(parsed)
 		}
+
+		status.ChargePercent = Percent(parsed)
 	}
 
 	if v, ok := kvs["LINEV"]; ok {
-		if parsed, err := parseFloatAndUnit(v); err != nil {
+		parsed, err := parseFloatAndUnit(v)
+		if err != nil {
 			return nil, fmt.Errorf("unable to parse LINEV %s: %w", v, err)
-		} else {
-			status.LineVoltage = Voltage(parsed)
 		}
+
+		status.LineVoltage = Voltage(parsed)
 	}
 
 	if v, ok := kvs["LOTRANS"]; ok {
-		if parsed, err := parseFloatAndUnit(v); err != nil {
+		parsed, err := parseFloatAndUnit(v)
+		if err != nil {
 			return nil, fmt.Errorf("unable to parse LOTRANS %s: %w", v, err)
-		} else {
-			status.LowTransferVoltage = Voltage(parsed)
 		}
+
+		status.LowTransferVoltage = Voltage(parsed)
 	}
 
 	if v, ok := kvs["HITRANS"]; ok {
-		if parsed, err := parseFloatAndUnit(v); err != nil {
+		parsed, err := parseFloatAndUnit(v)
+		if err != nil {
 			return nil, fmt.Errorf("unable to parse HITRANS %s: %w", v, err)
-		} else {
-			status.HighTransferVoltage = Voltage(parsed)
 		}
+
+		status.HighTransferVoltage = Voltage(parsed)
 	}
 
 	if v, ok := kvs["BATTV"]; ok {
-		if parsed, err := parseFloatAndUnit(v); err != nil {
+		parsed, err := parseFloatAndUnit(v)
+		if err != nil {
 			return nil, fmt.Errorf("unable to parse BATTV %s: %w", v, err)
-		} else {
-			status.BatteryVoltage = Voltage(parsed)
 		}
+
+		status.BatteryVoltage = Voltage(parsed)
 	}
 
 	if v, ok := kvs["NOMBATTV"]; ok {
-		if parsed, err := parseFloatAndUnit(v); err != nil {
+		parsed, err := parseFloatAndUnit(v)
+		if err != nil {
 			return nil, fmt.Errorf("unable to parse NOMBATTV %s: %w", v, err)
-		} else {
-			status.NominalBatteryVoltage = Voltage(parsed)
 		}
+
+		status.NominalBatteryVoltage = Voltage(parsed)
 	}
 
 	if v, ok := kvs["NOMINV"]; ok {
-		if parsed, err := parseFloatAndUnit(v); err != nil {
+		parsed, err := parseFloatAndUnit(v)
+		if err != nil {
 			return nil, fmt.Errorf("unable to parse NOMINV %s: %w", v, err)
-		} else {
-			status.NominalInputVoltage = Voltage(parsed)
 		}
+
+		status.NominalInputVoltage = Voltage(parsed)
 	}
 
 	if v, ok := kvs["NOMPOWER"]; ok {
-		if parsed, err := parseFloatAndUnit(v); err != nil {
+		parsed, err := parseFloatAndUnit(v)
+		if err != nil {
 			return nil, fmt.Errorf("unable to parse NOMPOWER %s: %w", v, err)
-		} else {
-			status.NominalWattage = Wattage(parsed)
 		}
+
+		status.NominalWattage = Wattage(parsed)
 	}
 
 	if v, ok := kvs["BATTDATE"]; ok {
-		if parsed, err := parseDate(v); err != nil {
+		parsed, err := parseDate(v)
+		if err != nil {
 			return nil, fmt.Errorf("unable to parse BATTDATE %s: %w", v, err)
-		} else {
-			status.BatteryDate = parsed
 		}
+
+		status.BatteryDate = parsed
 	}
 
 	if v, ok := kvs["XONBATT"]; ok {
-		if parsed, err := parseDateTime(v); err != nil {
+		parsed, err := parseDateTime(v)
+		if err != nil {
 			return nil, fmt.Errorf("unable to parse XONBATT %s: %w", v, err)
-		} else {
-			status.LastTimeOnBattery = parsed
 		}
+
+		status.LastTimeOnBattery = parsed
 	}
 
 	if v, ok := kvs["XOFFBATT"]; ok {
-		if parsed, err := parseDateTime(v); err != nil {
+		parsed, err := parseDateTime(v)
+		if err != nil {
 			return nil, fmt.Errorf("unable to parse XOFFBATT %s: %w", v, err)
-		} else {
-			status.LastTimeOffBattery = parsed
 		}
+
+		status.LastTimeOffBattery = parsed
 	}
 
 	if v, ok := kvs["LASTSTEST"]; ok {
-		if parsed, err := parseDateTime(v); err != nil {
+		parsed, err := parseDateTime(v)
+		if err != nil {
 			return nil, fmt.Errorf("unable to parse LASTSTEST %s: %w", v, err)
-		} else {
-			status.LastSelfTest = parsed
 		}
+
+		status.LastSelfTest = parsed
 	}
 
 	return status, nil

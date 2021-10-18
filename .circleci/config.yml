@@ -6,5 +6,7 @@ jobs:
     steps:
       - checkout
       - run: go version
+      - run: make setup
+      - run: make lint
       - run: make build
       - run: make test
