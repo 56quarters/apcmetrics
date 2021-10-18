@@ -14,7 +14,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"html/template"
 	"net/http"
 	"os"
 	"strings"
@@ -35,19 +34,6 @@ var (
 	Version  string
 	Branch   string
 	Revision string
-)
-
-const (
-	indexTpt = `
-<!doctype html>
-<html>
-<head><title>APC UPS Metrics Exporter</title></head>
-<body>
-<h1>APC UPS Metrics Exporter</h1>
-<p><a href="{{ . }}">Metrics</a></p>
-</body>
-</html>
-`
 )
 
 func init() {
@@ -92,39 +78,37 @@ func main() {
 
 	switch command {
 	case metrics.FullCommand():
-		serveMetrics(client, logger, *upsTimeout, *metricsPath, *metricsAddress)
+		if err := serveMetrics(client, logger, *upsTimeout, *metricsPath, *metricsAddress); err != nil {
+			level.Error(logger).Log("msg", "unable to serve UPS metrics", "err", err)
+			os.Exit(1)
+		}
 	case status.FullCommand():
-		showStatus(client, logger, *upsTimeout, *statusRaw)
+		if err := showStatus(client, *upsTimeout, *statusRaw); err != nil {
+			level.Error(logger).Log("msg", "unable to get UPS status", "err", err)
+			os.Exit(1)
+		}
 	case events.FullCommand():
-		showEvents(client, logger, *upsTimeout, *eventsRaw)
+		if err := showEvents(client, *upsTimeout, *eventsRaw); err != nil {
+			level.Error(logger).Log("msg", "unable to get UPS events", "err", err)
+			os.Exit(1)
+		}
 	}
 }
 
-func serveMetrics(client *apcmetrics.ApcClient, logger log.Logger, upsTimeout time.Duration, metricsPath string, metricsAddress string) {
+func serveMetrics(client *apcmetrics.ApcClient, logger log.Logger, upsTimeout time.Duration, metricsPath string, metricsAddress string) error {
 	prometheus.MustRegister(version.NewCollector("apcmetrics"))
 	prometheus.MustRegister(apcmetrics.NewApcCollector(client, upsTimeout, logger))
 
-	index, err := template.New("index").Parse(indexTpt)
-	if err != nil {
-		level.Error(logger).Log("msg", "failed to parse index template", "err", err)
-		os.Exit(1)
-	}
-
 	http.Handle(metricsPath, promhttp.Handler())
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		if err := index.Execute(w, metricsPath); err != nil {
-			level.Error(logger).Log("msg", "failed to render index", "err", err)
-		}
-	})
-
 	level.Info(logger).Log("msg", "serving Prometheus metrics", "path", metricsPath, "address", metricsAddress)
 	if err := http.ListenAndServe(metricsAddress, nil); err != nil {
-		level.Error(logger).Log("err", err)
-		os.Exit(1)
+		return err
 	}
+
+	return nil
 }
 
-func showStatus(client *apcmetrics.ApcClient, logger log.Logger, upsTimeout time.Duration, raw bool) {
+func showStatus(client *apcmetrics.ApcClient, upsTimeout time.Duration, raw bool) error {
 	ctx, cancel := context.WithTimeout(context.Background(), upsTimeout)
 	defer cancel()
 
@@ -132,31 +116,29 @@ func showStatus(client *apcmetrics.ApcClient, logger log.Logger, upsTimeout time
 	if raw {
 		lines, err := client.StatusRaw(ctx)
 		if err != nil {
-			level.Error(logger).Log("msg", "unable to get UPS status", "err", err)
-			os.Exit(1)
+			return err
 		}
 
 		output = strings.Join(lines, "\n")
 	} else {
 		status, err := client.Status(ctx)
 		if err != nil {
-			level.Error(logger).Log("msg", "unable to get UPS status", "err", err)
-			os.Exit(1)
+			return err
 		}
 
 		bytes, err := json.MarshalIndent(status, "", "  ")
 		if err != nil {
-			level.Error(logger).Log("msg", "unable to marshall UPS status to JSON", "err", err)
-			os.Exit(1)
+			return err
 		}
 
 		output = string(bytes)
 	}
 
 	fmt.Println(output)
+	return nil
 }
 
-func showEvents(client *apcmetrics.ApcClient, logger log.Logger, upsTimeout time.Duration, raw bool) {
+func showEvents(client *apcmetrics.ApcClient, upsTimeout time.Duration, raw bool) error {
 	ctx, cancel := context.WithTimeout(context.Background(), upsTimeout)
 	defer cancel()
 
@@ -164,26 +146,24 @@ func showEvents(client *apcmetrics.ApcClient, logger log.Logger, upsTimeout time
 	if raw {
 		lines, err := client.EventsRaw(ctx)
 		if err != nil {
-			level.Error(logger).Log("msg", "unable to get UPS events", "err", err)
-			os.Exit(1)
+			return err
 		}
 
 		output = strings.Join(lines, "\n")
 	} else {
 		events, err := client.Events(ctx)
 		if err != nil {
-			level.Error(logger).Log("msg", "unable to get UPS events", "err", err)
-			os.Exit(1)
+			return err
 		}
 
 		bytes, err := json.MarshalIndent(events, "", "  ")
 		if err != nil {
-			level.Error(logger).Log("msg", "unable to marshall UPS events to JSON", "err", err)
-			os.Exit(1)
+			return err
 		}
 
 		output = string(bytes)
 	}
 
 	fmt.Println(output)
+	return nil
 }
