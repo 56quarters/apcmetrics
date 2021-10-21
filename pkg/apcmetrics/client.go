@@ -14,12 +14,13 @@ import (
 	"context"
 	"encoding/binary"
 	"fmt"
-	"github.com/go-kit/log"
 	"net"
 	"strings"
+
+	"github.com/go-kit/log"
 )
 
-const maxLineSize = 255
+const readBufferSize = 255
 
 type ApcClient struct {
 	address string
@@ -86,9 +87,8 @@ func (a *ApcClient) send(ctx context.Context, cmd string) ([]string, error) {
 		return nil, fmt.Errorf("short write cmd=%s expected=%d got=%d", cmd, cmdLen, n)
 	}
 
+	lineBuf := make([]byte, readBufferSize)
 	var out []string
-	lineBuf := make([]byte, maxLineSize)
-
 	for {
 		n, err = conn.Read(lineBuf[0:2])
 		if err != nil {
@@ -100,8 +100,8 @@ func (a *ApcClient) send(ctx context.Context, cmd string) ([]string, error) {
 		}
 
 		sz := int(binary.BigEndian.Uint16(lineBuf[0:2]))
-		if maxLineSize < sz {
-			sz = maxLineSize
+		if readBufferSize < sz {
+			sz = readBufferSize
 		}
 
 		n, err = conn.Read(lineBuf[0:sz])

@@ -1,0 +1,13 @@
+linters:
+  enable:
+    - goimports
+    - golint
+    - gofmt
+    - misspell
+    - depguard
+
+linters-settings:
+  errcheck:
+    exclude: ./.errcheck-exclude
+  goimports:
+    local-prefixes: "github.com/56quarters/apcmetrics"

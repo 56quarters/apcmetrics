@@ -29,6 +29,9 @@ image-dist: image
 lint:
 	golangci-lint run
 
+setup:
+	GO111MODULE=on go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.33.0
+
 test:
 	go test
 
