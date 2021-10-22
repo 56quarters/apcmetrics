@@ -104,12 +104,16 @@ func (a *ApcClient) send(ctx context.Context, cmd string) ([]string, error) {
 			sz = readBufferSize
 		}
 
+		if sz == 0 {
+			break
+		}
+
 		n, err = conn.Read(lineBuf[0:sz])
 		if err != nil {
 			return nil, err
 		}
 
-		if n == 0 {
+		if n == 0 || n != sz {
 			break
 		}
 
