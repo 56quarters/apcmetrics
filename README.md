@@ -48,6 +48,22 @@ sudo systemctl enable apcmetrics.service
 sudo systemctl start apcmetrics.service
 ```
 
+### Dependencies
+
+`apcmetrics` connects to [`apcupsd`](http://www.apcupsd.org/) to read metrics about an APC UPS. As
+such you will need an instance of `apcupsd` running that `apcmetrics` can connect to. `apcmetrics`
+uses the [NIS Server](http://www.apcupsd.org/manual/manual.html#nis-server-client-configuration-using-the-net-driver)
+feature of `apcupsd` which is usually enabled by default. 
+
+`apcupsd` can be installed on Debian or Ubuntu systems with `apt-get install apcupsd`. `apcmetrics`
+must be able to connect to the server run by `apcupsd`. The easiest way to do this is to run
+`apcmetrics` on the same host that `apcupsd` is running on.
+
+Make sure the following settings are in place for `apcupsd`:
+* `NETSERVER on` 
+* `NISIP <interface address>`
+* `NISPORT 3551`
+
 ## Usage
 
 The primary purpose of `apcmetrics` is to export metrics about an APC UPS to Prometheus. However,
