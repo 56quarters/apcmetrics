@@ -201,8 +201,17 @@ func (a *apcCollector) Collect(ch chan<- prometheus.Metric) {
 	ch <- prometheus.MustNewConstMetric(a.nominalBatteryVoltage, prometheus.GaugeValue, float64(status.NominalBatteryVoltage))
 	ch <- prometheus.MustNewConstMetric(a.nominalInputVoltage, prometheus.GaugeValue, float64(status.NominalInputVoltage))
 	ch <- prometheus.MustNewConstMetric(a.nominalWattage, prometheus.GaugeValue, float64(status.NominalWattage))
-	ch <- prometheus.MustNewConstMetric(a.batteryDate, prometheus.GaugeValue, float64(status.BatteryDate.Unix()))
-	ch <- prometheus.MustNewConstMetric(a.lastTimeOnBattery, prometheus.GaugeValue, float64(status.LastTimeOnBattery.Unix()))
-	ch <- prometheus.MustNewConstMetric(a.lastTimeOffBattery, prometheus.GaugeValue, float64(status.LastTimeOffBattery.Unix()))
-	ch <- prometheus.MustNewConstMetric(a.lastSelfTest, prometheus.GaugeValue, float64(status.LastSelfTest.Unix()))
+
+	if !status.BatteryDate.IsZero() {
+		ch <- prometheus.MustNewConstMetric(a.batteryDate, prometheus.GaugeValue, float64(status.BatteryDate.Unix()))
+	}
+	if !status.LastTimeOnBattery.IsZero() {
+		ch <- prometheus.MustNewConstMetric(a.lastTimeOnBattery, prometheus.GaugeValue, float64(status.LastTimeOnBattery.Unix()))
+	}
+	if !status.LastTimeOffBattery.IsZero() {
+		ch <- prometheus.MustNewConstMetric(a.lastTimeOffBattery, prometheus.GaugeValue, float64(status.LastTimeOffBattery.Unix()))
+	}
+	if !status.LastSelfTest.IsZero() {
+		ch <- prometheus.MustNewConstMetric(a.lastSelfTest, prometheus.GaugeValue, float64(status.LastSelfTest.Unix()))
+	}
 }

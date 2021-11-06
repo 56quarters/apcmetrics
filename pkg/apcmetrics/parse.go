@@ -18,6 +18,8 @@ import (
 	"time"
 )
 
+const missingTime = "N/A"
+
 type Percent float64
 type Voltage float64
 type Wattage float64
@@ -269,10 +271,18 @@ func parseDuration(raw string) (time.Duration, error) {
 }
 
 func parseDate(raw string) (time.Time, error) {
+	if raw == missingTime {
+		return time.Time{}, nil
+	}
+
 	return time.Parse("2006-01-02", raw)
 }
 
 func parseDateTime(raw string) (time.Time, error) {
+	if raw == missingTime {
+		return time.Time{}, nil
+	}
+
 	return time.Parse("2006-01-02 15:04:05 -0700", raw)
 }
 
