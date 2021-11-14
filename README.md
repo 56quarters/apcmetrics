@@ -72,9 +72,21 @@ and self-tests). Examples of how to do each are given below
 
 ### Metrics export
 
-`apcmetrics` is must connect to `apcupsd` to export metrics. It defaults to collecting metrics from
+`apcmetrics` must connect to `apcupsd` to export metrics. It defaults to collecting metrics from
 a locally running `apcupsd` daemon using the default port of `3551`. If `apcupsd` is not running
 locally, you can supply the address using the `--ups.address` CLI flag.
+
+An example of running `apcmetrics` this way:
+
+```
+./apcmetrics --ups.address=example:3551 metrics
+```
+
+In another terminal:
+
+```
+curl -s 'http://localhost:9780/metrics'
+```
 
 Prometheus metrics are exposed on port `9780` at `/metrics` by default. Once `apcmetrics`
 is running, configure scrapes of it by your Prometheus server. Add the host running
