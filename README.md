@@ -90,7 +90,7 @@ curl -s 'http://localhost:9780/metrics'
 
 Prometheus metrics are exposed on port `9780` at `/metrics` by default. Once `apcmetrics`
 is running, configure scrapes of it by your Prometheus server. Add the host running
-`apcmetrocs` as a target under the Prometheus `scrape_configs` section as described by
+`apcmetrics` as a target under the Prometheus `scrape_configs` section as described by
 the example below.
 
 ```yaml
