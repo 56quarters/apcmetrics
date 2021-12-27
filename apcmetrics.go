@@ -24,6 +24,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"runtime"
 	"strings"
 	"time"
 
@@ -31,7 +32,6 @@ import (
 	"github.com/go-kit/log/level"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"github.com/prometheus/common/version"
 	"gopkg.in/alecthomas/kingpin.v2"
 
 	"github.com/56quarters/apcmetrics/pkg/apcmetrics"
@@ -43,14 +43,6 @@ var (
 	Branch   string
 	Revision string
 )
-
-func init() {
-	// Set globals in the Prometheus version module based on our values
-	// set by the build process to expose build information as a metric
-	version.Version = Version
-	version.Branch = Branch
-	version.Revision = Revision
-}
 
 func setupLogger(l level.Option) log.Logger {
 	logger := log.NewSyncLogger(log.NewLogfmtLogger(os.Stderr))
@@ -104,7 +96,18 @@ func main() {
 }
 
 func serveMetrics(client *apcmetrics.ApcClient, logger log.Logger, upsTimeout time.Duration, metricsPath string, metricsAddress string) error {
-	prometheus.MustRegister(version.NewCollector("apcmetrics"))
+	versionInfo := prometheus.NewGaugeFunc(prometheus.GaugeOpts{
+		Namespace: "apcmetrics",
+		Name:      "build_info",
+		Help:      "APC Metrics version information",
+		ConstLabels: prometheus.Labels{
+			"version":   Version,
+			"revision":  Revision,
+			"branch":    Branch,
+			"goversion": runtime.Version(),
+		},
+	}, func() float64 { return 1 })
+	prometheus.MustRegister(versionInfo)
 	prometheus.MustRegister(apcmetrics.NewApcCollector(client, upsTimeout, logger))
 
 	http.Handle(metricsPath, promhttp.Handler())
