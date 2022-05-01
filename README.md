@@ -1,6 +1,6 @@
 # APC Metrics
 
-[![build status](https://circleci.com/gh/56quarters/apcmetrics.svg?style=shield)](https://circleci.com/gh/56quarters/apcmetrics)
+![build status](https://github.com/56quarters/apcmetrics/actions/workflows/go.yml/badge.svg)
 
 Prometheus exporter for APC UPSes controlled by [apcupsd](http://www.apcupsd.org/)
 
