@@ -10,6 +10,25 @@ Prometheus exporter for APC UPSes controlled by [apcupsd](http://www.apcupsd.org
 * Inspect the current status of your APC UPS using `apcmetrics status`
 * Inspect recent events for your APC UPS using `apcmetrics events`
 
+The following metrics are exported:
+
+* `apc_info` - Info about the UPS
+* `apc_status` - Current status of the UPS
+* `apc_time_left` - Remaining runtime left on the batteries in seconds
+* `apc_load_percent` - Percentage of load capacity
+* `apc_charge_percent` - Percentage of charge of the batteries
+* `apc_line_voltage` - Current line voltage
+* `apc_low_transfer_voltage` - Line voltage below which the UPS will switch to batteries
+* `apc_high_transfer_voltage` - Line voltage above which the UPS will switch to batteries
+* `apc_battery_voltage` - Battery voltage
+* `apc_nominal_battery_voltage` - Nominal battery voltage
+* `apc_nominal_input_voltage` - Nominal input voltage
+* `apc_nominal_wattage` - Max power the UPS is designed to supply
+* `apc_battery_date` - Date the batteries were last replaced as a UNIX timestamp
+* `apc_last_time_on_battery` - Last transfer on to batteries as a UNIX timestamp
+* `apc_last_time_off_battery` - Last transfer off of batteries as a UNIX timestamp
+* `apc_last_self_test` - Last self test as a UNIX timestamp
+
 ## Building
 
 To build from source you'll need Go 1.16 installed.
@@ -53,14 +72,15 @@ sudo systemctl start apcmetrics.service
 `apcmetrics` connects to [`apcupsd`](http://www.apcupsd.org/) to read metrics about an APC UPS. As
 such you will need an instance of `apcupsd` running that `apcmetrics` can connect to. `apcmetrics`
 uses the [NIS Server](http://www.apcupsd.org/manual/manual.html#nis-server-client-configuration-using-the-net-driver)
-feature of `apcupsd` which is usually enabled by default. 
+feature of `apcupsd` which is usually enabled by default.
 
 `apcupsd` can be installed on Debian or Ubuntu systems with `apt-get install apcupsd`. `apcmetrics`
 must be able to connect to the server run by `apcupsd`. The easiest way to do this is to run
 `apcmetrics` on the same host that `apcupsd` is running on.
 
 Make sure the following settings are in place for `apcupsd`:
-* `NETSERVER on` 
+
+* `NETSERVER on`
 * `NISIP <interface address>`
 * `NISPORT 3551`
 
@@ -97,22 +117,22 @@ the example below.
 # Sample config for Prometheus.
 
 global:
-  scrape_interval:     15s
+  scrape_interval: 15s
   evaluation_interval: 15s
   external_labels:
-      monitor: 'my_prom'
+    monitor: 'my_prom'
 
 scrape_configs:
   - job_name: apcmetrics
     static_configs:
-      - targets: ['example:9780']
+      - targets: [ 'example:9780' ]
 ```
 
 ### `apcmetrics status`
 
 Running `apcmetrics status` will display the current status of the APC UPS as JSON. It defaults to
-collecting  metrics from  a locally running `apcupsd` daemon using the default port of `3551`. If
-`apcupsd` is not running  locally, you can supply the address using the `--ups.address` CLI flag. 
+collecting metrics from a locally running `apcupsd` daemon using the default port of `3551`. If
+`apcupsd` is not running locally, you can supply the address using the `--ups.address` CLI flag.
 An example is given below.
 
 ```
@@ -145,8 +165,8 @@ $ apcmetrics status
 ### `apcmetrics events`
 
 Running `apcmetrics events` will display the last few events recorded by the APC UPS as JSON.
-It defaults to collecting  metrics from  a locally running `apcupsd` daemon using the default
-port of `3551`. If `apcupsd` is not running  locally, you can supply the address using the 
+It defaults to collecting metrics from a locally running `apcupsd` daemon using the default
+port of `3551`. If `apcupsd` is not running locally, you can supply the address using the
 `--ups.address` CLI flag. An example is given below.
 
 ```
