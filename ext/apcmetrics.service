@@ -7,5 +7,15 @@ Type=simple
 User=nobody
 ExecStart=/usr/local/bin/apcmetrics metrics
 
+CapabilityBoundingSet=
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=true
+ProtectControlGroups=yes
+ProtectKernelModules=yes
+ProtectKernelTunables=yes
+RestrictNamespaces=yes
+
 [Install]
 WantedBy=multi-user.target
