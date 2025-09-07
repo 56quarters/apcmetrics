@@ -1,13 +1,17 @@
+version: "2"
 linters:
   enable:
-    - goimports
-    - golint
-    - gofmt
+    - revive
     - misspell
-    - depguard
+    - staticcheck
+  settings:
+    errcheck:
+      exclude-functions:
+        - (github.com/go-kit/log.Logger).Log
+  exclusions:
+    presets:
+      - comments
+formatters:
+  enable:
+    - gofmt
 
-linters-settings:
-  errcheck:
-    exclude: ./.errcheck-exclude
-  goimports:
-    local-prefixes: "github.com/56quarters/apcmetrics"

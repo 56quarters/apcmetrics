@@ -1,6 +1,6 @@
 module github.com/56quarters/apcmetrics
 
-go 1.17
+go 1.20
 
 require (
 	github.com/go-kit/log v0.1.0
